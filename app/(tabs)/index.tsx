@@ -2,6 +2,20 @@ import { useState } from 'react';
 import { Image, StyleSheet, Button, View, Dimensions } from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import * as ImagePicker from 'expo-image-picker';
+import { Canvas } from '@shopify/react-native-skia';
+import { FloatingCircleItem } from '@/components/FloatingCircleItem';
+
+const FLOATING_CIRCLE_ITEMS = [
+  {
+    id: '1',
+    x: 50,
+    y: 50,
+    r: 50,
+    color: 'yellow',
+    animationSize: 20,
+    duration: 2000,
+  },
+] as const satisfies readonly React.ComponentProps<typeof FloatingCircleItem>[];
 
 export default function HomeScreen() {
   const [selectedImage, setSelectedImage] = useState<null | string>(null);
@@ -40,13 +54,22 @@ export default function HomeScreen() {
     }>
       <View style={styles.imageContainer}>
         {selectedImage && (
-          <Image
-            source={{ uri: selectedImage }}
-            style={{
-              ...dimensions,
-              resizeMode: 'contain'
-            }}
-          />
+          <View style={{
+            position: 'relative',
+            ...dimensions,
+          }}>
+            <Image
+              source={{ uri: selectedImage }}
+              style={styles.image}
+            />
+            <Canvas
+              style={styles.canvas}
+            >
+              {FLOATING_CIRCLE_ITEMS.map((item) => (
+                <FloatingCircleItem key={item.id} {...item} />
+              ))}
+            </Canvas>
+          </View>
         )}
       </View>
       <Button title="写真を選択" onPress={pickImageAsync} />
@@ -57,8 +80,19 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   imageContainer: {
-    flex: 1,
     alignItems: 'center',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+    resizeMode: 'contain',
+  },
+  canvas: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+    backgroundColor: 'transparent',
   },
   reactLogo: {
     height: 178,
