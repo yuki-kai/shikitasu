@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Image, StyleSheet, Button, View, Dimensions } from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import * as ImagePicker from 'expo-image-picker';
 import { Canvas } from '@shopify/react-native-skia';
 import { FloatingCircleItem } from '@/components/FloatingCircleItem';
+import * as MediaLibrary from 'expo-media-library';
+import * as FileSystem from 'expo-file-system';
+import { captureRef } from 'react-native-view-shot';
 
 const FLOATING_CIRCLE_ITEMS = [
   {
@@ -20,6 +23,7 @@ const FLOATING_CIRCLE_ITEMS = [
 export default function HomeScreen() {
   const [selectedImage, setSelectedImage] = useState<null | string>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const imageRef = useRef<View>(null);
 
   const pickImageAsync = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -43,6 +47,20 @@ export default function HomeScreen() {
     }
   };
 
+  const downloadImage = async () => {
+    try {
+      const imageUri = await captureRef(imageRef, { quality: 1 });
+      if (!imageUri) {
+        throw new Error('画像が選択されていません');
+      }
+      await MediaLibrary.saveToLibraryAsync(imageUri);
+      setSelectedImage(null);
+      alert('カメラロールに保存しました');
+    } catch (error) {
+      console.error('保存に失敗しました', error);
+    }
+  };
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -54,10 +72,7 @@ export default function HomeScreen() {
     }>
       <View style={styles.imageContainer}>
         {selectedImage && (
-          <View style={{
-            position: 'relative',
-            ...dimensions,
-          }}>
+          <View ref={imageRef} collapsable={false} style={{ position: 'relative', ...dimensions }}>
             <Image
               source={{ uri: selectedImage }}
               style={styles.image}
@@ -73,7 +88,12 @@ export default function HomeScreen() {
         )}
       </View>
       <Button title="写真を選択" onPress={pickImageAsync} />
-      {selectedImage && (<Button title="写真を削除" onPress={() => setSelectedImage(null)} />)}
+      {selectedImage && (
+        <>
+          <Button title="写真を削除" onPress={() => setSelectedImage(null)} />
+          <Button title="カメラロールに保存" onPress={() => downloadImage()} />
+        </>
+      )}
     </ParallaxScrollView>
   );
 }
