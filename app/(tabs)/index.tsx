@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { ReactElement, useState } from 'react';
 import { Image, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { FloatingCircleItem } from '@/components/FloatingCircleItem';
 
 export default function HomeScreen() {
+  const [selectedFrame, setSelectedFrame] = useState<ReactElement | null>(null);
+
   const frames = [
     {
       id: 1,
@@ -32,10 +34,13 @@ export default function HomeScreen() {
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
       headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
+        <View style={styles.headerImageContainer}>
+          <Image
+            source={require('@/assets/images/partial-react-logo.png')}
+            style={styles.reactLogo}
+          />
+          <View style={styles.frameSection}>{selectedFrame}</View>
+        </View>
       }
     >
       <View style={{ marginTop: 16 }}>
@@ -55,7 +60,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.previewSection}
-              onPress={() => alert('プレビュー')}
+              onPress={() => setSelectedFrame(item.element)}
             >
               <Text style={styles.previewText}>プレビュー</Text>
             </TouchableOpacity>
@@ -67,12 +72,24 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  headerImageContainer: {
+    position: 'relative',
+    width: '100%',
+    height: '100%',
+  },
   reactLogo: {
     height: 178,
     width: 290,
     bottom: 0,
     left: 0,
     position: 'absolute',
+    zIndex: 1,
+  },
+  frameSection: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    zIndex: 2,
   },
   cardContainer: {
     flexDirection: 'row',
