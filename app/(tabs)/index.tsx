@@ -2,27 +2,30 @@ import React, { ReactElement, useState } from 'react';
 import { Image, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { FloatingCircleItem } from '@/components/FloatingCircleItem';
+import { useRouter } from 'expo-router';
+import { Frame } from '@/types/Frame';
 
 export default function HomeScreen() {
+  const router = useRouter();
   const [selectedFrame, setSelectedFrame] = useState<ReactElement | null>(null);
 
-  const frames = [
+  const frames: Frame[] = [
     {
-      id: 1,
+      id: '1',
       name: 'テスト',
       icon: '🎨',
       description: '説明',
       element: <FloatingCircleItem />
     },
     {
-      id: 2,
+      id: '2',
       name: 'テスト',
       icon: '🎨',
       description: '説明',
       element: <FloatingCircleItem />
     },
     {
-      id: 3,
+      id: '3',
       name: 'テスト',
       icon: '🎨',
       description: '説明',
@@ -48,7 +51,7 @@ export default function HomeScreen() {
           <View key={item.id} style={styles.cardContainer}>
             <TouchableOpacity
               style={styles.contentSection}
-              onPress={() => alert('画面遷移')}
+              onPress={() => router.push(`/frames/${item.id}`)}
             >
               <View style={styles.frameIcon}>
                 <Text>{item.icon}</Text>
