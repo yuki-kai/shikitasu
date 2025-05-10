@@ -1,37 +1,15 @@
-import React, { ReactElement, useState } from 'react';
+import React, { ReactElement, useContext, useState } from 'react';
 import { Image, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { FloatingCircleItem } from '@/components/FloatingCircleItem';
 import { useRouter } from 'expo-router';
 import { Frame } from '@/types/Frame';
+import { FrameContext } from '@/contexts/FrameContext';
 
 export default function HomeScreen() {
   const router = useRouter();
   const [selectedFrame, setSelectedFrame] = useState<ReactElement | null>(null);
-
-  const frames: Frame[] = [
-    {
-      id: '1',
-      name: 'テスト',
-      icon: '🎨',
-      description: '説明',
-      element: <FloatingCircleItem />
-    },
-    {
-      id: '2',
-      name: 'テスト',
-      icon: '🎨',
-      description: '説明',
-      element: <FloatingCircleItem />
-    },
-    {
-      id: '3',
-      name: 'テスト',
-      icon: '🎨',
-      description: '説明',
-      element: <FloatingCircleItem />
-    },
-  ]
+  const { frames } = useContext(FrameContext);
 
   return (
     <ParallaxScrollView
@@ -47,23 +25,23 @@ export default function HomeScreen() {
       }
     >
       <View style={{ marginTop: 16 }}>
-        {frames.map((item) => (
-          <View key={item.id} style={styles.cardContainer}>
+        {Object.entries(frames).map(([key, frame]) => (
+          <View key={key} style={styles.cardContainer}>
             <TouchableOpacity
               style={styles.contentSection}
-              onPress={() => router.push(`/frames/${item.id}`)}
+              onPress={() => router.push(`/frames/${key}`)}
             >
               <View style={styles.frameIcon}>
-                <Text>{item.icon}</Text>
+                <Text>{frame.icon}</Text>
               </View>
               <View style={styles.textContainer}>
-                <Text style={styles.frameName}>{item.name}</Text>
-                <Text style={styles.frameDescription}>{item.description}</Text>
+                <Text style={styles.frameName}>{frame.name}</Text>
+                <Text style={styles.frameDescription}>{frame.description}</Text>
               </View>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.previewSection}
-              onPress={() => setSelectedFrame(item.element)}
+              onPress={() => setSelectedFrame(frame.element)}
             >
               <Text style={styles.previewText}>プレビュー</Text>
             </TouchableOpacity>
