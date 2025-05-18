@@ -1,15 +1,19 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Image, Button, Dimensions, TouchableOpacity, useColorScheme } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FrameContext } from '@/contexts/FrameContext';
 import { Frames } from '@/constants/Frames';
 import * as ImagePicker from 'expo-image-picker';
+import * as MediaLibrary from 'expo-media-library';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { captureRef } from 'react-native-view-shot';
 
 export default function FrameScreen() {
+  const router = useRouter();
   const { key }: { key: keyof typeof Frames } = useLocalSearchParams();
   const { getFrame } = useContext(FrameContext);
   const frame = getFrame(key);
+  const imageRef = useRef<View>(null);
 
   const [selectedImage, setSelectedImage] = useState<null | string>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -27,22 +31,37 @@ export default function FrameScreen() {
         const screenWidth = Dimensions.get('window').width * 0.9;
         const scaleFactor = screenWidth / width;
         const scaledHeight = height * scaleFactor;
-        console.log(screenWidth);
-        console.log(scaledHeight);
         setDimensions({ width: screenWidth, height: scaledHeight });
       }, (error) => {
         console.error('Failed to get image size:', error);
       });
-    } else {
-      alert("画像が選択されていません");
+    }
+  };
+
+  const downloadImage = async () => {
+    try {
+      const imageUri = await captureRef(imageRef, { quality: 1 });
+      if (!imageUri) {
+        throw new Error('画像が選択されていません');
+      }
+      await MediaLibrary.saveToLibraryAsync(imageUri);
+      setSelectedImage(null);
+      alert('カメラロールに保存しました');
+      // TODO: 保存した画像を表示して遷移したい
+      router.back();
+    } catch (error) {
+      console.error('保存に失敗しました', error);
     }
   };
 
   return (
     <View style={styles.container}>
-      <View style={selectedImage
-        ? {...styles.selectedImageContainer, ...dimensions}
-        : {...styles.placeholderContainer}}
+      <View
+        ref={imageRef}
+        collapsable={false}
+        style={selectedImage
+          ? {...styles.selectedImageContainer, ...dimensions}
+          : {...styles.placeholderContainer}}
       >
         <View style={styles.placeholderFrame}>{frame.element}</View>
         {selectedImage ? (
@@ -57,7 +76,26 @@ export default function FrameScreen() {
           </TouchableOpacity>
         )}
       </View>
-      {selectedImage && (<Button title="写真を削除" onPress={() => setSelectedImage(null)} />)}
+
+      {selectedImage && (
+        <>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              onPress={pickImageAsync}
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>写真を変える</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setSelectedImage(null)}
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>写真を消す</Text>
+            </TouchableOpacity>
+          </View>
+          <Button title="カメラロールに保存" onPress={() => downloadImage()} />
+        </>
+      )}
     </View>
   );
 }
@@ -106,5 +144,32 @@ const styles = StyleSheet.create({
   placeholderText: {
     marginTop: 10,
     color: '#666',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  button: {
+    width: '40%',
+    borderWidth: 1,
+    borderColor: '#A1CEDC',
+    backgroundColor: '#A1CEDC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 12,
+    borderRadius: 8,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  buttonText: {
+    color: 'white',
   },
 });
